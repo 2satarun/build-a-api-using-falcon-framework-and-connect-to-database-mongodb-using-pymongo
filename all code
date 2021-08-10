@@ -1,0 +1,51 @@
+from wsgiref.simple_server import make_server
+import falcon
+import pymongo
+
+
+client = pymongo.MongoClient("mongodb://localhost:27017/")   #localhost
+db = client['abc']            #create database in mongodb(abc)
+col = db['ab']                #create collection in abc (ab)
+
+class ThingsResource:
+
+    def on_get(self, req, resp):
+        """Handles GET requests"""
+        resp.status = falcon.HTTP_200  
+        resp.content_type = falcon.MEDIA_JSON
+        all = col.find()               #find all document  in collection
+        l=[]
+        for x in all:
+            print(x)
+            l.append(x.get('values'))              #add the values in list
+            
+        resp.media={                                   #response generate
+            'values':l
+        }
+    def on_post(self, req, resp):
+
+         """Handles post requests"""
+         resp.status = falcon.HTTP_200  
+         resp.content_type = falcon.MEDIA_JSON
+         print(req.media)
+         
+         col.insert(dict(req.media))                   #insert the data 
+         resp.media = {"result" : "done"}
+         
+         
+         
+        
+app = falcon.App()                      
+
+
+aaaa = ThingsResource()                       
+
+
+app.add_route('/aaaa', aaaa)                  #end point
+
+if __name__ == '__main__':
+    with make_server('', 8000, app) as httpd:
+        print('Serving on port 8000...')
+
+        
+        httpd.serve_forever()
